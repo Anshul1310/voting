@@ -16,6 +16,7 @@ export default function VoteOptionCard({
   const isA = type === 'option_a';
   const label = isA ? 'A' : 'B';
 
+
   return (
     <button
       className={`vote-option-btn ${isA ? 'option-a' : 'option-b'} ${isSelected ? 'selected' : ''}`}
@@ -25,7 +26,7 @@ export default function VoteOptionCard({
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
-          <div 
+          <div
             style={{
               width: 38,
               height: 38,
@@ -35,8 +36,8 @@ export default function VoteOptionCard({
               justifyContent: 'center',
               fontWeight: 800,
               fontSize: '1.1rem',
-              background: isA 
-                ? 'linear-gradient(135deg, rgba(6, 182, 212, 0.25) 0%, rgba(59, 130, 246, 0.25) 100%)' 
+              background: isA
+                ? 'linear-gradient(135deg, rgba(6, 182, 212, 0.25) 0%, rgba(59, 130, 246, 0.25) 100%)'
                 : 'linear-gradient(135deg, rgba(236, 72, 153, 0.25) 0%, rgba(244, 63, 94, 0.25) 100%)',
               border: `1px solid ${isA ? 'rgba(6, 182, 212, 0.4)' : 'rgba(244, 63, 94, 0.4)'}`,
               color: isA ? '#38bdf8' : '#fb7185'
@@ -63,7 +64,7 @@ export default function VoteOptionCard({
           )}
 
           {isSelected && (
-            <div 
+            <div
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -88,7 +89,7 @@ export default function VoteOptionCard({
 
       {/* Dynamic Animated Progress Bar */}
       <div className="vote-progress-track">
-        <div 
+        <div
           className={`vote-progress-fill ${isA ? 'fill-a' : 'fill-b'}`}
           style={{ width: `${percentage}%` }}
         />
