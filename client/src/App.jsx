@@ -10,9 +10,16 @@ import { getOrCreateVoterId, saveLocalVote, getLocalVote } from './utils/voterId
 import { playNewPollSound, playPollEndedSound } from './utils/sound';
 
 export default function App() {
-  // Navigation: 'voter' (/) or 'admin' (/admin)
+  const isAdminRoute = () => {
+    const path = window.location.pathname;
+    const hash = window.location.hash;
+    const search = new URLSearchParams(window.location.search);
+    return path.startsWith('/admin') || hash === '#admin' || hash === '#/admin' || search.get('admin') === 'true';
+  };
+
+  // Navigation: 'voter' (/) or 'admin' (/admin, #admin, ?admin=true)
   const [currentView, setCurrentView] = useState(() => {
-    return window.location.pathname.startsWith('/admin') ? 'admin' : 'voter';
+    return isAdminRoute() ? 'admin' : 'voter';
   });
 
   const [isConnected, setIsConnected] = useState(socket.connected);
@@ -31,14 +38,19 @@ export default function App() {
     }
   };
 
-  // Handle browser back/forward buttons
+  // Handle browser back/forward and hash changes
   useEffect(() => {
-    const handlePopState = () => {
-      setCurrentView(window.location.pathname.startsWith('/admin') ? 'admin' : 'voter');
+    const handleNavigation = () => {
+      setCurrentView(isAdminRoute() ? 'admin' : 'voter');
     };
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
+    window.addEventListener('popstate', handleNavigation);
+    window.addEventListener('hashchange', handleNavigation);
+    return () => {
+      window.removeEventListener('popstate', handleNavigation);
+      window.removeEventListener('hashchange', handleNavigation);
+    };
   }, []);
+
 
   // Update voted status for a given poll
   const syncVotedStatus = useCallback((poll) => {
