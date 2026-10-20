@@ -1,52 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  PlusCircle, 
-  Clock, 
   Trash2, 
-  BarChart2, 
-  CheckCircle, 
-  AlertCircle, 
-  Sparkles, 
-  Database, 
-  Zap, 
   StopCircle,
   Eye,
   EyeOff,
-  Lock,
-  Unlock,
-  LogOut,
-  Trophy,
-  ShieldCheck
+  LogOut
 } from 'lucide-react';
 import CountdownTimer from './CountdownTimer';
 import { BACKEND_URL } from '../utils/config';
 
-
 const PRESETS = [
-  {
-    question: 'Tabs or Spaces for indentation?',
-    a: 'Tabs (Cleaner)',
-    b: 'Spaces (Predictable)',
-    duration: 15
-  },
-  {
-    question: 'Next.js vs Vite for modern React web apps?',
-    a: 'Vite ⚡',
-    b: 'Next.js 🚀',
-    duration: 15
-  },
-  {
-    question: 'Would you rather have unlimited free coffee or unlimited high-speed fiber internet?',
-    a: 'Unlimited Coffee ☕',
-    b: 'Unlimited Fiber 🌐',
-    duration: 10
-  },
-  {
-    question: 'Which database engine do you trust most in production?',
-    a: 'PostgreSQL 🐘',
-    b: 'MongoDB 🍃',
-    duration: 30
-  }
+  { question: 'Tabs or Spaces for indentation?', a: 'Tabs', b: 'Spaces', duration: 15 },
+  { question: 'Next.js vs Vite for modern React?', a: 'Vite', b: 'Next.js', duration: 15 },
+  { question: 'Dark mode or Light mode by default?', a: 'Dark mode', b: 'Light mode', duration: 10 },
+  { question: 'Coffee or Chai for late-night code?', a: 'Coffee', b: 'Chai', duration: 15 }
 ];
 
 export default function AdminView({ activePoll, onPollCreated, onForceEndPoll, onSwitchToVoter }) {
@@ -77,7 +44,7 @@ export default function AdminView({ activePoll, onPollCreated, onForceEndPoll, o
   const handleLogin = async (e) => {
     e.preventDefault();
     if (!passwordInput.trim()) {
-      setLoginError('Please enter the admin password.');
+      setLoginError('Enter password.');
       return;
     }
 
@@ -93,10 +60,9 @@ export default function AdminView({ activePoll, onPollCreated, onForceEndPoll, o
 
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || 'Incorrect admin password.');
+        throw new Error(data.error || 'Incorrect password.');
       }
 
-      // Success
       sessionStorage.setItem('pulsevote_admin_auth', 'true');
       sessionStorage.setItem('pulsevote_admin_pw', passwordInput.trim());
       setIsAuthenticated(true);
@@ -125,7 +91,7 @@ export default function AdminView({ activePoll, onPollCreated, onForceEndPoll, o
         setHistory(data.polls);
       }
     } catch (err) {
-      console.error('Failed to load polls history', err);
+      console.error('Failed to load history', err);
     } finally {
       setLoadingHistory(false);
     }
@@ -152,13 +118,13 @@ export default function AdminView({ activePoll, onPollCreated, onForceEndPoll, o
       return;
     }
     if (!optionA.trim() || !optionB.trim()) {
-      setFeedback({ type: 'error', message: 'Both Option 1 and Option 2 are required.' });
+      setFeedback({ type: 'error', message: 'Both Option A and Option B are required.' });
       return;
     }
 
     const finalDuration = customDuration ? parseInt(customDuration, 10) : duration;
     if (!finalDuration || finalDuration <= 0) {
-      setFeedback({ type: 'error', message: 'Please specify a valid duration in seconds.' });
+      setFeedback({ type: 'error', message: 'Specify a valid duration in seconds.' });
       return;
     }
 
@@ -191,12 +157,11 @@ export default function AdminView({ activePoll, onPollCreated, onForceEndPoll, o
 
       setFeedback({
         type: 'success',
-        message: `Poll created! Active for ${finalDuration} seconds. All connected users were notified via Socket.IO.`
+        message: `Poll published (${finalDuration}s). Live on all screens.`
       });
 
       if (onPollCreated) onPollCreated(data.poll);
 
-      // Reset form
       setQuestion('');
       setOptionA('');
       setOptionB('');
@@ -209,7 +174,7 @@ export default function AdminView({ activePoll, onPollCreated, onForceEndPoll, o
   };
 
   const handleDeletePoll = async (pollId) => {
-    if (!confirm(`Are you sure you want to delete Poll #${pollId}?`)) return;
+    if (!confirm(`Delete Poll #${pollId}?`)) return;
     try {
       const res = await fetch(`${BACKEND_URL}/api/polls/${pollId}`, { 
         method: 'DELETE',
@@ -219,9 +184,6 @@ export default function AdminView({ activePoll, onPollCreated, onForceEndPoll, o
       });
       if (res.ok) {
         setHistory((prev) => prev.filter((p) => p.id !== pollId));
-      } else {
-        const data = await res.json();
-        alert(data.error || 'Failed to delete poll');
       }
     } catch (err) {
       console.error('Failed to delete poll', err);
@@ -233,113 +195,74 @@ export default function AdminView({ activePoll, onPollCreated, onForceEndPoll, o
   // ----------------------------------------------------
   if (!isAuthenticated) {
     return (
-      <div style={{ maxWidth: 480, margin: '4rem auto', width: '100%' }}>
-        <div className="glass-card" style={{ padding: '3rem 2.25rem', textAlign: 'center' }}>
+      <div style={{ maxWidth: 360, margin: '5rem auto', width: '100%' }}>
+        <div className="glass-card" style={{ padding: '2rem 1.5rem', textAlign: 'center' }}>
           
-          <div 
-            style={{
-              width: 72,
-              height: 72,
-              borderRadius: '50%',
-              background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.25) 0%, rgba(236, 72, 153, 0.25) 100%)',
-              border: '1px solid rgba(99, 102, 241, 0.4)',
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginBottom: '1.5rem',
-              boxShadow: '0 0 30px rgba(99, 102, 241, 0.3)'
-            }}
-          >
-            <Lock size={32} color="#a5b4fc" />
+          <div style={{ fontSize: '0.8rem', fontFamily: 'var(--font-mono)', color: 'var(--accent-green)', marginBottom: '0.5rem', textTransform: 'uppercase' }}>
+            ● admin locked
           </div>
-
-          <h2 style={{ fontSize: '1.85rem', marginBottom: '0.6rem' }}>
-            Admin Console Locked
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '1.25rem' }}>
+            Enter Password
           </h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', marginBottom: '2rem', lineHeight: 1.5 }}>
-            Please enter the administrator password to manage, broadcast, and delete polls.
-          </p>
 
           {loginError && (
             <div 
               style={{
-                padding: '0.75rem 1rem',
-                borderRadius: 'var(--radius-md)',
-                background: 'rgba(239, 68, 68, 0.15)',
-                border: '1px solid rgba(239, 68, 68, 0.4)',
-                color: '#f87171',
-                fontSize: '0.9rem',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                marginBottom: '1.5rem',
-                textAlign: 'left'
+                padding: '0.5rem',
+                borderRadius: 'var(--radius-sm)',
+                background: 'rgba(239, 68, 68, 0.1)',
+                border: '1px solid rgba(239, 68, 68, 0.25)',
+                color: '#ef4444',
+                fontSize: '0.8rem',
+                marginBottom: '1rem',
+                fontFamily: 'var(--font-mono)'
               }}
             >
-              <AlertCircle size={18} style={{ flexShrink: 0 }} />
-              <span>{loginError}</span>
+              {loginError}
             </div>
           )}
 
-          <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-            <div className="input-group" style={{ textAlign: 'left' }}>
-              <label className="input-label" htmlFor="admin-password-input">Password</label>
-              <div style={{ position: 'relative' }}>
-                <input
-                  id="admin-password-input"
-                  type={showPassword ? 'text' : 'password'}
-                  className="form-input"
-                  placeholder="Enter admin password..."
-                  value={passwordInput}
-                  onChange={(e) => setPasswordInput(e.target.value)}
-                  autoFocus
-                  required
-                  style={{ paddingRight: '2.75rem' }}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  style={{
-                    position: 'absolute',
-                    right: '0.75rem',
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    background: 'transparent',
-                    border: 'none',
-                    color: 'var(--text-muted)',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    padding: '0.25rem'
-                  }}
-                  title={showPassword ? 'Hide password' : 'Show password'}
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
+          <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+            <div style={{ position: 'relative' }}>
+              <input
+                id="admin-password-input"
+                type={showPassword ? 'text' : 'password'}
+                className="form-input"
+                placeholder="password"
+                value={passwordInput}
+                onChange={(e) => setPasswordInput(e.target.value)}
+                autoFocus
+                required
+                style={{ paddingRight: '2.5rem' }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={{
+                  position: 'absolute',
+                  right: '0.75rem',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'var(--text-muted)',
+                  cursor: 'pointer',
+                  display: 'flex'
+                }}
+              >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
             </div>
 
             <button
               type="submit"
               className="btn-primary"
               disabled={isVerifying}
-              id="admin-login-btn"
-              style={{ width: '100%', padding: '0.9rem', fontSize: '1rem' }}
+              style={{ width: '100%' }}
             >
-              <Unlock size={18} />
-              {isVerifying ? 'Verifying...' : 'Unlock Admin Console'}
+              {isVerifying ? 'verifying...' : 'unlock'}
             </button>
           </form>
-
-          <div style={{ marginTop: '2rem', paddingTop: '1.5rem', borderTop: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'center' }}>
-            <button 
-              className="btn-secondary" 
-              onClick={onSwitchToVoter}
-              style={{ fontSize: '0.85rem' }}
-            >
-              Return to Home (Voter Screen)
-            </button>
-          </div>
 
         </div>
       </div>
@@ -353,92 +276,65 @@ export default function AdminView({ activePoll, onPollCreated, onForceEndPoll, o
   const liveTotalVotes = isLive ? (activePoll.option_a_votes || 0) + (activePoll.option_b_votes || 0) : 0;
 
   return (
-    <div style={{ maxWidth: 960, margin: '1.5rem auto', width: '100%', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
       
-      {/* Header with Title and DB Status */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.25rem' }}>
-            <span style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#818cf8', fontWeight: 700 }}>
-              Administration Console
-            </span>
-            <span style={{ background: 'rgba(16, 185, 129, 0.15)', border: '1px solid rgba(16, 185, 129, 0.3)', color: '#34d399', padding: '0.15rem 0.6rem', borderRadius: 999, fontSize: '0.75rem', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
-              <ShieldCheck size={13} /> Authenticated
-            </span>
-          </div>
-          <h1 style={{ fontSize: '2.2rem' }}>Manage & Broadcast Polls</h1>
+          <span style={{ fontSize: '0.75rem', fontFamily: 'var(--font-mono)', color: 'var(--accent-green)', textTransform: 'uppercase' }}>
+            ● admin
+          </span>
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 600, marginTop: '0.2rem' }}>Console</h1>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <button className="btn-secondary" onClick={onSwitchToVoter} id="view-as-voter-btn">
-            <Eye size={16} /> View as Voter
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <button className="btn-secondary" onClick={onSwitchToVoter}>
+            view poll
           </button>
-          <button 
-            className="btn-secondary" 
-            onClick={handleLogout} 
-            title="Lock Admin Console"
-            style={{ color: '#fb7185', borderColor: 'rgba(244, 63, 94, 0.3)' }}
-          >
-            <LogOut size={16} /> Lock
+          <button className="btn-secondary" onClick={handleLogout} title="Lock">
+            <LogOut size={14} />
           </button>
         </div>
       </div>
 
       {/* Live Monitor Card (if active) */}
       {isLive && (
-        <div 
-          className="glass-card" 
-          style={{
-            padding: '1.75rem',
-            background: 'linear-gradient(135deg, rgba(20, 24, 45, 0.85) 0%, rgba(30, 27, 75, 0.85) 100%)',
-            borderColor: 'rgba(99, 102, 241, 0.4)',
-            boxShadow: '0 0 30px rgba(99, 102, 241, 0.2)'
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.25rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-              <span className="status-dot" style={{ backgroundColor: '#ef4444', boxShadow: '0 0 10px #ef4444' }} />
-              <span style={{ fontWeight: 800, color: '#f87171', letterSpacing: '0.04em', textTransform: 'uppercase', fontSize: '0.85rem' }}>
-                Currently Broadcasting Live
-              </span>
-              <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Poll #{activePoll.id}</span>
-            </div>
+        <div className="glass-card" style={{ padding: '1.5rem', borderColor: 'var(--accent-green)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+            <span style={{ fontSize: '0.75rem', fontFamily: 'var(--font-mono)', color: 'var(--accent-green)' }}>
+              ● live broadcasting
+            </span>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <CountdownTimer 
-                expiresAt={activePoll.expires_at}
-                totalDuration={activePoll.duration_seconds}
-              />
-
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <CountdownTimer expiresAt={activePoll.expires_at} />
               <button
                 className="btn-secondary"
                 onClick={() => onForceEndPoll(activePoll.id)}
-                style={{ color: '#f87171', borderColor: 'rgba(239, 68, 68, 0.3)', padding: '0.45rem 0.9rem', fontSize: '0.85rem' }}
-                id="force-end-btn"
+                style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem' }}
               >
-                <StopCircle size={15} /> Force End
+                <StopCircle size={13} /> end
               </button>
             </div>
           </div>
 
-          <h3 style={{ fontSize: '1.4rem', marginBottom: '1.25rem' }}>
+          <h3 style={{ fontSize: '1.15rem', fontWeight: 500, marginBottom: '1rem' }}>
             {activePoll.question}
           </h3>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1rem' }}>
-            <div style={{ padding: '1rem 1.25rem', borderRadius: 'var(--radius-md)', background: 'rgba(6, 182, 212, 0.08)', border: '1px solid rgba(6, 182, 212, 0.3)' }}>
-              <div style={{ fontSize: '0.85rem', color: '#38bdf8', fontWeight: 600 }}>Option A</div>
-              <div style={{ fontSize: '1.15rem', fontWeight: 700, margin: '0.2rem 0 0.5rem' }}>{activePoll.option_a}</div>
-              <div style={{ fontSize: '1.5rem', fontWeight: 800 }}>
-                {activePoll.option_a_votes || 0} <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>votes ({liveTotalVotes > 0 ? Math.round(((activePoll.option_a_votes || 0) / liveTotalVotes) * 100) : 0}%)</span>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+            <div style={{ padding: '0.85rem', background: 'var(--bg-main)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)' }}>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>A</div>
+              <div style={{ fontWeight: 500 }}>{activePoll.option_a}</div>
+              <div style={{ fontSize: '1.1rem', fontFamily: 'var(--font-mono)', marginTop: '0.3rem' }}>
+                {activePoll.option_a_votes || 0} <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>({liveTotalVotes > 0 ? Math.round(((activePoll.option_a_votes || 0) / liveTotalVotes) * 100) : 0}%)</span>
               </div>
             </div>
 
-            <div style={{ padding: '1rem 1.25rem', borderRadius: 'var(--radius-md)', background: 'rgba(244, 63, 94, 0.08)', border: '1px solid rgba(244, 63, 94, 0.3)' }}>
-              <div style={{ fontSize: '0.85rem', color: '#fb7185', fontWeight: 600 }}>Option B</div>
-              <div style={{ fontSize: '1.15rem', fontWeight: 700, margin: '0.2rem 0 0.5rem' }}>{activePoll.option_b}</div>
-              <div style={{ fontSize: '1.5rem', fontWeight: 800 }}>
-                {activePoll.option_b_votes || 0} <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>votes ({liveTotalVotes > 0 ? Math.round(((activePoll.option_b_votes || 0) / liveTotalVotes) * 100) : 0}%)</span>
+            <div style={{ padding: '0.85rem', background: 'var(--bg-main)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)' }}>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>B</div>
+              <div style={{ fontWeight: 500 }}>{activePoll.option_b}</div>
+              <div style={{ fontSize: '1.1rem', fontFamily: 'var(--font-mono)', marginTop: '0.3rem' }}>
+                {activePoll.option_b_votes || 0} <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>({liveTotalVotes > 0 ? Math.round(((activePoll.option_b_votes || 0) / liveTotalVotes) * 100) : 0}%)</span>
               </div>
             </div>
           </div>
@@ -446,21 +342,14 @@ export default function AdminView({ activePoll, onPollCreated, onForceEndPoll, o
       )}
 
       {/* Poll Creation Card */}
-      <div className="glass-card" style={{ padding: '2.25rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.5rem' }}>
-          <Sparkles size={20} color="#818cf8" />
-          <h2 style={{ fontSize: '1.5rem' }}>Create & Launch a New Poll</h2>
-        </div>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', marginBottom: '1.75rem' }}>
-          Configure a two-answer poll with a 10s, 15s, or 30s timer. Connected voter screens will immediately ring with a live notification via Socket.IO.
-        </p>
+      <div className="glass-card" style={{ padding: '1.5rem' }}>
+        <h2 style={{ fontSize: '1.15rem', fontWeight: 600, marginBottom: '1.25rem' }}>
+          New Poll
+        </h2>
 
         {/* Preset Suggestions */}
-        <div style={{ marginBottom: '1.5rem' }}>
-          <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 600 }}>
-            ⚡ Instant Preset Ideas:
-          </div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+        <div style={{ marginBottom: '1.25rem' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
             {PRESETS.map((p, idx) => (
               <button
                 key={idx}
@@ -468,7 +357,7 @@ export default function AdminView({ activePoll, onPollCreated, onForceEndPoll, o
                 className="preset-chip"
                 onClick={() => applyPreset(p)}
               >
-                {p.question.length > 36 ? p.question.substring(0, 36) + '...' : p.question}
+                {p.question}
               </button>
             ))}
           </div>
@@ -477,45 +366,42 @@ export default function AdminView({ activePoll, onPollCreated, onForceEndPoll, o
         {feedback && (
           <div 
             style={{
-              padding: '0.85rem 1.2rem',
-              borderRadius: 'var(--radius-md)',
-              background: feedback.type === 'success' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
-              border: `1px solid ${feedback.type === 'success' ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.4)'}`,
-              color: feedback.type === 'success' ? '#34d399' : '#f87171',
-              fontSize: '0.9rem',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.6rem',
-              marginBottom: '1.5rem'
+              padding: '0.65rem 0.9rem',
+              borderRadius: 'var(--radius-sm)',
+              background: feedback.type === 'success' ? 'var(--accent-green-subtle)' : 'rgba(239, 68, 68, 0.1)',
+              border: `1px solid ${feedback.type === 'success' ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`,
+              color: feedback.type === 'success' ? 'var(--accent-green)' : '#ef4444',
+              fontSize: '0.85rem',
+              marginBottom: '1rem',
+              fontFamily: 'var(--font-mono)'
             }}
           >
-            {feedback.type === 'success' ? <CheckCircle size={18} /> : <AlertCircle size={18} />}
-            <span>{feedback.message}</span>
+            {feedback.message}
           </div>
         )}
 
-        <form onSubmit={handleCreatePoll} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        <form onSubmit={handleCreatePoll} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div className="input-group">
-            <label className="input-label" htmlFor="poll-question">Poll Question</label>
+            <label className="input-label" htmlFor="poll-question">Question</label>
             <input
               id="poll-question"
               className="form-input"
               type="text"
-              placeholder="e.g., Which framework do you prefer for high-scale applications?"
+              placeholder="e.g. Which tool do you use more?"
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
               required
             />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.25rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
             <div className="input-group">
-              <label className="input-label" htmlFor="poll-option-a">Answer 1 (Option A)</label>
+              <label className="input-label" htmlFor="poll-option-a">Option A</label>
               <input
                 id="poll-option-a"
                 className="form-input"
                 type="text"
-                placeholder="e.g., React Vite ⚡"
+                placeholder="Option A"
                 value={optionA}
                 onChange={(e) => setOptionA(e.target.value)}
                 required
@@ -523,12 +409,12 @@ export default function AdminView({ activePoll, onPollCreated, onForceEndPoll, o
             </div>
 
             <div className="input-group">
-              <label className="input-label" htmlFor="poll-option-b">Answer 2 (Option B)</label>
+              <label className="input-label" htmlFor="poll-option-b">Option B</label>
               <input
                 id="poll-option-b"
                 className="form-input"
                 type="text"
-                placeholder="e.g., Next.js 🚀"
+                placeholder="Option B"
                 value={optionB}
                 onChange={(e) => setOptionB(e.target.value)}
                 required
@@ -538,50 +424,42 @@ export default function AdminView({ activePoll, onPollCreated, onForceEndPoll, o
 
           {/* Duration Selector */}
           <div className="input-group">
-            <label className="input-label">Poll Duration</label>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', alignItems: 'center' }}>
+            <label className="input-label">Duration</label>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
               <button
                 type="button"
                 className={`duration-chip ${duration === 10 && !customDuration ? 'active' : ''}`}
                 onClick={() => { setDuration(10); setCustomDuration(''); }}
-                id="duration-10s"
               >
-                <Zap size={16} /> 10 Seconds (Blitz)
+                10s
               </button>
 
               <button
                 type="button"
                 className={`duration-chip ${duration === 15 && !customDuration ? 'active' : ''}`}
                 onClick={() => { setDuration(15); setCustomDuration(''); }}
-                id="duration-15s"
               >
-                <Clock size={16} /> 15 Seconds (Standard)
+                15s
               </button>
 
               <button
                 type="button"
                 className={`duration-chip ${duration === 30 && !customDuration ? 'active' : ''}`}
                 onClick={() => { setDuration(30); setCustomDuration(''); }}
-                id="duration-30s"
               >
-                <Clock size={16} /> 30 Seconds (Extended)
+                30s
               </button>
 
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', marginLeft: 'auto' }}>
-                <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Custom:</span>
-                <input
-                  type="number"
-                  min="5"
-                  max="300"
-                  placeholder="Secs"
-                  value={customDuration}
-                  onChange={(e) => {
-                    setCustomDuration(e.target.value);
-                  }}
-                  className="form-input"
-                  style={{ width: '80px', padding: '0.5rem 0.6rem', textAlign: 'center' }}
-                />
-              </div>
+              <input
+                type="number"
+                min="5"
+                max="300"
+                placeholder="custom sec"
+                value={customDuration}
+                onChange={(e) => setCustomDuration(e.target.value)}
+                className="form-input"
+                style={{ width: '100px', padding: '0.4rem 0.6rem', textAlign: 'center', fontSize: '0.85rem' }}
+              />
             </div>
           </div>
 
@@ -590,125 +468,74 @@ export default function AdminView({ activePoll, onPollCreated, onForceEndPoll, o
               type="submit"
               className="btn-primary"
               disabled={isSubmitting}
-              id="broadcast-poll-btn"
-              style={{ minWidth: 200 }}
             >
-              <Zap size={18} fill="white" />
-              {isSubmitting ? 'Broadcasting...' : 'Launch Live Poll 🚀'}
+              {isSubmitting ? 'launching...' : 'launch poll'}
             </button>
           </div>
         </form>
       </div>
 
-      {/* Tech Architecture Callout */}
-      <div className="tech-callout">
-        <Database size={24} color="#818cf8" style={{ flexShrink: 0, marginTop: 2 }} />
-        <div>
-          <div style={{ fontWeight: 700, color: '#e0e7ff', marginBottom: '0.2rem' }}>
-            Protected Administrator Console
-          </div>
-          <div style={{ lineHeight: 1.6 }}>
-            Poll mutation endpoints are authenticated with server-side validation. Broadcast events are relayed instantly across all connected Socket.IO voter terminals.
-          </div>
-        </div>
-      </div>
-
-      {/* Past Polls History Table */}
-      <div className="glass-card" style={{ padding: '2rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
-          <div>
-            <h3 style={{ fontSize: '1.3rem' }}>Polls Archive & Audit</h3>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
-              Historical results recorded in PostgreSQL
-            </p>
-          </div>
-          <button className="btn-secondary" onClick={fetchHistory} style={{ fontSize: '0.8rem', padding: '0.4rem 0.75rem' }}>
-            Refresh List
+      {/* Past Polls Archive */}
+      <div className="glass-card" style={{ padding: '1.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+          <h3 style={{ fontSize: '1rem', fontWeight: 600 }}>History</h3>
+          <button className="btn-secondary" onClick={fetchHistory} style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}>
+            refresh
           </button>
         </div>
 
         {loadingHistory ? (
-          <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
-            Loading polls archive...
+          <div style={{ textAlign: 'center', padding: '1.5rem', color: 'var(--text-muted)', fontSize: '0.85rem', fontFamily: 'var(--font-mono)' }}>
+            loading...
           </div>
         ) : history.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
-            No polls have been conducted yet. Create your first poll above!
+          <div style={{ textAlign: 'center', padding: '1.5rem', color: 'var(--text-muted)', fontSize: '0.85rem', fontFamily: 'var(--font-mono)' }}>
+            no polls yet.
           </div>
         ) : (
           <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-muted)' }}>
-                  <th style={{ padding: '0.75rem 0.5rem' }}>ID</th>
-                  <th style={{ padding: '0.75rem' }}>Question</th>
-                  <th style={{ padding: '0.75rem' }}>Duration</th>
-                  <th style={{ padding: '0.75rem' }}>Option A</th>
-                  <th style={{ padding: '0.75rem' }}>Option B</th>
-                  <th style={{ padding: '0.75rem' }}>Status</th>
-                  <th style={{ padding: '0.75rem 0.5rem', textAlign: 'right' }}>Actions</th>
+                  <th style={{ padding: '0.5rem 0.25rem', fontFamily: 'var(--font-mono)' }}>#</th>
+                  <th style={{ padding: '0.5rem' }}>Question</th>
+                  <th style={{ padding: '0.5rem' }}>A</th>
+                  <th style={{ padding: '0.5rem' }}>B</th>
+                  <th style={{ padding: '0.5rem', textAlign: 'right' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {history.map((p) => {
-                  const total = (p.option_a_votes || 0) + (p.option_b_votes || 0);
-                  const aWinner = p.option_a_votes > p.option_b_votes;
-                  const bWinner = p.option_b_votes > p.option_a_votes;
-
-                  return (
-                    <tr key={p.id} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)' }}>
-                      <td style={{ padding: '0.85rem 0.5rem', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
-                        #{p.id}
-                      </td>
-                      <td style={{ padding: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                        {p.question}
-                      </td>
-                      <td style={{ padding: '0.85rem', color: 'var(--text-secondary)' }}>
-                        {p.duration_seconds}s
-                      </td>
-                      <td style={{ padding: '0.85rem' }}>
-                        <span style={{ color: aWinner ? '#38bdf8' : 'var(--text-secondary)', fontWeight: aWinner ? 700 : 400 }}>
-                          {p.option_a} ({p.option_a_votes}) {aWinner && total > 0 ? '🏆' : ''}
-                        </span>
-                      </td>
-                      <td style={{ padding: '0.85rem' }}>
-                        <span style={{ color: bWinner ? '#fb7185' : 'var(--text-secondary)', fontWeight: bWinner ? 700 : 400 }}>
-                          {p.option_b} ({p.option_b_votes}) {bWinner && total > 0 ? '🏆' : ''}
-                        </span>
-                      </td>
-                      <td style={{ padding: '0.85rem' }}>
-                        <span 
-                          style={{
-                            padding: '0.2rem 0.6rem',
-                            borderRadius: 999,
-                            fontSize: '0.75rem',
-                            fontWeight: 600,
-                            background: p.status === 'active' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(100, 116, 139, 0.2)',
-                            color: p.status === 'active' ? '#f87171' : '#94a3b8'
-                          }}
-                        >
-                          {p.status}
-                        </span>
-                      </td>
-                      <td style={{ padding: '0.85rem 0.5rem', textAlign: 'right' }}>
-                        <button
-                          onClick={() => handleDeletePoll(p.id)}
-                          style={{
-                            background: 'transparent',
-                            border: 'none',
-                            color: 'var(--text-muted)',
-                            cursor: 'pointer',
-                            padding: '0.3rem',
-                            transition: 'color 0.2s'
-                          }}
-                          title="Delete Poll"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
+                {history.map((p) => (
+                  <tr key={p.id} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.03)' }}>
+                    <td style={{ padding: '0.65rem 0.25rem', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
+                      {p.id}
+                    </td>
+                    <td style={{ padding: '0.65rem', color: 'var(--text-primary)' }}>
+                      {p.question}
+                    </td>
+                    <td style={{ padding: '0.65rem', color: 'var(--text-secondary)' }}>
+                      {p.option_a}: <strong style={{ color: 'var(--text-primary)' }}>{p.option_a_votes}</strong>
+                    </td>
+                    <td style={{ padding: '0.65rem', color: 'var(--text-secondary)' }}>
+                      {p.option_b}: <strong style={{ color: 'var(--text-primary)' }}>{p.option_b_votes}</strong>
+                    </td>
+                    <td style={{ padding: '0.65rem 0.25rem', textAlign: 'right' }}>
+                      <button
+                        onClick={() => handleDeletePoll(p.id)}
+                        style={{
+                          background: 'transparent',
+                          border: 'none',
+                          color: 'var(--text-muted)',
+                          cursor: 'pointer',
+                          padding: '0.2rem'
+                        }}
+                        title="Delete"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>

@@ -81,12 +81,15 @@ export default function App() {
     };
 
     const onActivePollData = ({ poll }) => {
-      setActivePoll(poll);
-      syncVotedStatus(poll);
+      if (poll && poll.status === 'active' && poll.remaining_seconds > 0) {
+        setActivePoll(poll);
+        syncVotedStatus(poll);
+      } else {
+        setActivePoll(null);
+      }
     };
 
     const onNewPoll = ({ poll }) => {
-      console.log('📢 New poll broadcast received:', poll);
       setActivePoll(poll);
       setHasVoted(false);
       setVotedChoice(null);
@@ -105,17 +108,10 @@ export default function App() {
       });
     };
 
-    const onPollEnded = ({ poll }) => {
-      console.log('🏁 Poll ended event received:', poll);
-      setActivePoll((prev) => {
-        if (!prev || prev.id !== poll.id) return prev;
-        return {
-          ...prev,
-          ...poll,
-          status: 'ended'
-        };
-      });
-      playPollEndedSound();
+    const onPollEnded = () => {
+      // Remove question from feed immediately when expired
+      setActivePoll(null);
+      setNewPollNotification(null);
     };
 
     socket.on('connect', onConnect);
@@ -167,10 +163,8 @@ export default function App() {
 
   // Poll expiry callback from timer
   const handlePollExpired = () => {
-    setActivePoll((prev) => {
-      if (!prev || prev.status === 'ended') return prev;
-      return { ...prev, status: 'ended' };
-    });
+    setActivePoll(null);
+    setNewPollNotification(null);
   };
 
   // Admin force end poll
@@ -185,7 +179,7 @@ export default function App() {
       });
       const data = await res.json();
       if (data.poll) {
-        setActivePoll(data.poll);
+        setActivePoll(null);
       }
     } catch (err) {
       console.error('Failed to end poll', err);
@@ -238,9 +232,9 @@ export default function App() {
         )}
       </main>
 
-      {/* Footer */}
-      <footer style={{ borderTop: '1px solid var(--border-subtle)', padding: '1.25rem 2rem', textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-        PulseVote &bull; Powered by React Vite, Node.js Socket.IO &amp; PostgreSQL Atomic Increment in Docker
+      {/* Minimal Footer */}
+      <footer style={{ borderTop: '1px solid var(--border-subtle)', padding: '1.25rem 2rem', textAlign: 'center', fontSize: '0.8rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+        vote
       </footer>
     </div>
   );

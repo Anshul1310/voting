@@ -1,5 +1,4 @@
 import React from 'react';
-import { Zap, ShieldCheck, Home, Settings, Database } from 'lucide-react';
 
 export default function Navbar({ currentView, setCurrentView, isConnected }) {
   return (
@@ -9,34 +8,17 @@ export default function Navbar({ currentView, setCurrentView, isConnected }) {
         style={{ cursor: 'pointer' }}
         onClick={() => setCurrentView('voter')}
       >
-        <div className="nav-brand-icon">
-          <Zap size={22} fill="white" />
-        </div>
-        <div>
-          <span className="gradient-brand" style={{ fontSize: '1.4rem' }}>PulseVote</span>
-          <span style={{ fontSize: '0.75rem', display: 'block', color: 'var(--text-muted)', fontWeight: 500, letterSpacing: '0.04em' }}>
-            ATOMIC REAL-TIME POLLS
-          </span>
-        </div>
+        <span className="nav-brand-dot" />
+        <span style={{ fontWeight: 600 }}>vote</span>
       </div>
 
       <div className="nav-links">
-        <div className="status-pill" title={isConnected ? 'Connected to live Socket.IO server' : 'Connecting to server...'}>
+        <div className="status-pill">
           <span 
             className="status-dot" 
-            style={{ backgroundColor: isConnected ? '#10b981' : '#f59e0b', boxShadow: isConnected ? '0 0 8px #10b981' : '0 0 8px #f59e0b' }} 
+            style={{ backgroundColor: isConnected ? 'var(--accent-green)' : '#f59e0b' }} 
           />
-          <span>{isConnected ? 'Socket Live' : 'Connecting...'}</span>
-        </div>
-
-        <div 
-          className="status-pill" 
-          style={{ background: 'rgba(99, 102, 241, 0.12)', borderColor: 'rgba(99, 102, 241, 0.3)', color: '#a5b4fc' }}
-          title="PostgreSQL 16 in Docker with Atomic Increment"
-        >
-          <Database size={13} />
-          <span style={{ display: 'none', minWidth: '0' }} className="hide-sm">PG Docker</span>
-          <span>Postgres Atomic</span>
+          <span>{isConnected ? 'live' : 'connecting'}</span>
         </div>
 
         <button
@@ -44,8 +26,7 @@ export default function Navbar({ currentView, setCurrentView, isConnected }) {
           onClick={() => setCurrentView('voter')}
           id="nav-home-btn"
         >
-          <Home size={17} />
-          <span>Home</span>
+          poll
         </button>
 
         <button
@@ -53,8 +34,7 @@ export default function Navbar({ currentView, setCurrentView, isConnected }) {
           onClick={() => setCurrentView('admin')}
           id="nav-admin-btn"
         >
-          <Settings size={17} />
-          <span>/admin</span>
+          /admin
         </button>
       </div>
     </nav>
