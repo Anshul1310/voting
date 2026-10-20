@@ -4,7 +4,9 @@ import VoterView from './components/VoterView';
 import AdminView from './components/AdminView';
 import NotificationBanner from './components/NotificationBanner';
 import socket from './utils/socket';
+import { BACKEND_URL } from './utils/config';
 import { getOrCreateVoterId, saveLocalVote, getLocalVote } from './utils/voterId';
+
 import { playNewPollSound, playPollEndedSound } from './utils/sound';
 
 export default function App() {
@@ -140,7 +142,7 @@ export default function App() {
 
   // Cast vote handler (REST API + fallback to Socket)
   const handleVote = async (pollId, choice) => {
-    const res = await fetch(`/api/polls/${pollId}/vote`, {
+    const res = await fetch(`${BACKEND_URL}/api/polls/${pollId}/vote`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ voterId, choice })
@@ -175,7 +177,7 @@ export default function App() {
   const handleForceEndPoll = async (pollId) => {
     try {
       const adminPassword = sessionStorage.getItem('pulsevote_admin_pw') || 'anshul';
-      const res = await fetch(`/api/polls/${pollId}/end`, { 
+      const res = await fetch(`${BACKEND_URL}/api/polls/${pollId}/end`, { 
         method: 'POST',
         headers: {
           'x-admin-password': adminPassword

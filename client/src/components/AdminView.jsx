@@ -19,6 +19,8 @@ import {
   ShieldCheck
 } from 'lucide-react';
 import CountdownTimer from './CountdownTimer';
+import { BACKEND_URL } from '../utils/config';
+
 
 const PRESETS = [
   {
@@ -83,7 +85,7 @@ export default function AdminView({ activePoll, onPollCreated, onForceEndPoll, o
     setLoginError(null);
 
     try {
-      const res = await fetch('/api/admin/verify', {
+      const res = await fetch(`${BACKEND_URL}/api/admin/verify`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password: passwordInput.trim() })
@@ -117,7 +119,7 @@ export default function AdminView({ activePoll, onPollCreated, onForceEndPoll, o
   const fetchHistory = async () => {
     setLoadingHistory(true);
     try {
-      const res = await fetch('/api/polls');
+      const res = await fetch(`${BACKEND_URL}/api/polls`);
       const data = await res.json();
       if (data.polls) {
         setHistory(data.polls);
@@ -164,7 +166,7 @@ export default function AdminView({ activePoll, onPollCreated, onForceEndPoll, o
     setFeedback(null);
 
     try {
-      const res = await fetch('/api/polls', {
+      const res = await fetch(`${BACKEND_URL}/api/polls`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -209,7 +211,7 @@ export default function AdminView({ activePoll, onPollCreated, onForceEndPoll, o
   const handleDeletePoll = async (pollId) => {
     if (!confirm(`Are you sure you want to delete Poll #${pollId}?`)) return;
     try {
-      const res = await fetch(`/api/polls/${pollId}`, { 
+      const res = await fetch(`${BACKEND_URL}/api/polls/${pollId}`, { 
         method: 'DELETE',
         headers: {
           'x-admin-password': getAdminPassword()
