@@ -1,6 +1,5 @@
 /* ==========================================================================
-   MINIMALIST DESIGN SYSTEM (Inspired by delta.nitt.edu)
-   Clean, refined, typography-first dark theme
+   DVOTE MINIMALIST DESIGN SYSTEM (Inspired by delta.nitt.edu)
    ========================================================================== */
 
 :root {
@@ -88,19 +87,12 @@ html, body {
 .nav-brand {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.75rem;
   text-decoration: none;
-  font-size: 1rem;
-  font-weight: 600;
-  letter-spacing: -0.02em;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
   color: var(--text-primary);
-}
-
-.nav-brand-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--accent-green);
 }
 
 .nav-links {
@@ -118,7 +110,7 @@ html, body {
   font-size: 0.85rem;
   font-weight: 500;
   cursor: pointer;
-  border: 1px solid transparent;
+  border: 1px solid var(--border-subtle);
   background: transparent;
   color: var(--text-secondary);
   transition: all var(--transition);
@@ -127,13 +119,8 @@ html, body {
 
 .nav-btn:hover {
   color: var(--text-primary);
+  border-color: var(--border-hover);
   background: var(--bg-surface);
-}
-
-.nav-btn.active {
-  color: var(--text-primary);
-  background: var(--bg-surface);
-  border-color: var(--border-subtle);
 }
 
 .status-pill {
@@ -168,7 +155,7 @@ html, body {
 /* Minimal Vote Option Button */
 .vote-option-btn {
   width: 100%;
-  padding: 1.35rem 1.5rem;
+  padding: 1.25rem 1.5rem;
   border-radius: var(--radius-md);
   border: 1px solid var(--border-subtle);
   background: var(--bg-surface);
@@ -230,6 +217,44 @@ html, body {
   color: #ef4444;
   border-color: rgba(239, 68, 68, 0.3);
   background: rgba(239, 68, 68, 0.08);
+}
+
+/* Indeterminate Loading Bar for Waiting State */
+.loading-bar-track {
+  width: 200px;
+  max-width: 80%;
+  height: 3px;
+  background: var(--border-subtle);
+  border-radius: 999px;
+  overflow: hidden;
+  position: relative;
+  margin: 1.5rem auto 0;
+}
+
+.loading-bar-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 40%;
+  background: var(--accent-green);
+  border-radius: 999px;
+  animation: indeterminate-slide 1.5s infinite ease-in-out;
+}
+
+@keyframes indeterminate-slide {
+  0% {
+    left: -40%;
+    width: 30%;
+  }
+  50% {
+    left: 40%;
+    width: 50%;
+  }
+  100% {
+    left: 100%;
+    width: 30%;
+  }
 }
 
 /* Clean Form Controls */
@@ -367,6 +392,39 @@ html, body {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
   cursor: pointer;
   max-width: 90vw;
+}
+
+/* ==========================================================================
+   RESPONSIVENESS (Mobile, Tablet, Desktop)
+   ========================================================================== */
+@media (max-width: 768px) {
+  .app-container {
+    padding: 2rem 1rem;
+  }
+
+  .navbar {
+    padding: 1rem 1.25rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .responsive-two-col {
+    grid-template-columns: 1fr !important;
+  }
+
+  .vote-option-btn {
+    padding: 1rem 1.15rem;
+  }
+
+  .form-input {
+    font-size: 0.9rem;
+    padding: 0.65rem 0.85rem;
+  }
+
+  .btn-primary, .btn-secondary {
+    width: 100%;
+    padding: 0.75rem;
+  }
 }
 
 /* Clean Custom Scrollbar */

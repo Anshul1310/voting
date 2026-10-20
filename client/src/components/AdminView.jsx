@@ -4,7 +4,8 @@ import {
   StopCircle,
   Eye,
   EyeOff,
-  LogOut
+  LogOut,
+  ArrowLeft
 } from 'lucide-react';
 import CountdownTimer from './CountdownTimer';
 import { BACKEND_URL } from '../utils/config';
@@ -195,14 +196,16 @@ export default function AdminView({ activePoll, onPollCreated, onForceEndPoll, o
   // ----------------------------------------------------
   if (!isAuthenticated) {
     return (
-      <div style={{ maxWidth: 360, margin: '5rem auto', width: '100%' }}>
+      <div style={{ maxWidth: 360, margin: '4rem auto', width: '100%', padding: '0 1rem' }}>
         <div className="glass-card" style={{ padding: '2rem 1.5rem', textAlign: 'center' }}>
           
-          <div style={{ fontSize: '0.8rem', fontFamily: 'var(--font-mono)', color: 'var(--accent-green)', marginBottom: '0.5rem', textTransform: 'uppercase' }}>
-            ● admin locked
-          </div>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '1.25rem' }}>
-            Enter Password
+          <img 
+            src="/logo.png" 
+            alt="DVOTE" 
+            style={{ width: 40, height: 40, marginBottom: '0.75rem', opacity: 0.9 }} 
+          />
+          <h2 style={{ fontSize: '1.15rem', fontWeight: 600, marginBottom: '1rem' }}>
+            Admin Login
           </h2>
 
           {loginError && (
@@ -264,6 +267,16 @@ export default function AdminView({ activePoll, onPollCreated, onForceEndPoll, o
             </button>
           </form>
 
+          <div style={{ marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid var(--border-subtle)' }}>
+            <button 
+              className="btn-secondary" 
+              onClick={onSwitchToVoter}
+              style={{ fontSize: '0.8rem', width: '100%' }}
+            >
+              <ArrowLeft size={14} /> back to poll
+            </button>
+          </div>
+
         </div>
       </div>
     );
@@ -274,24 +287,24 @@ export default function AdminView({ activePoll, onPollCreated, onForceEndPoll, o
   // ----------------------------------------------------
   const isLive = activePoll && activePoll.status === 'active' && activePoll.remaining_seconds > 0;
   const liveTotalVotes = isLive ? (activePoll.option_a_votes || 0) + (activePoll.option_b_votes || 0) : 0;
+  const liveAPercent = liveTotalVotes > 0 ? Math.round(((activePoll.option_a_votes || 0) / liveTotalVotes) * 100) : 0;
+  const liveBPercent = liveTotalVotes > 0 ? Math.round(((activePoll.option_b_votes || 0) / liveTotalVotes) * 100) : 0;
 
   return (
-    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
+    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
       
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div>
-          <span style={{ fontSize: '0.75rem', fontFamily: 'var(--font-mono)', color: 'var(--accent-green)', textTransform: 'uppercase' }}>
-            ● admin
-          </span>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 600, marginTop: '0.2rem' }}>Console</h1>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+          <img src="/logo.png" alt="DVOTE" style={{ width: 22, height: 22 }} />
+          <h1 style={{ fontSize: '1.25rem', fontWeight: 600 }}>DVOTE Admin</h1>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <button className="btn-secondary" onClick={onSwitchToVoter}>
-            view poll
+          <button className="btn-secondary" onClick={onSwitchToVoter} style={{ fontSize: '0.8rem', padding: '0.35rem 0.75rem' }}>
+            <ArrowLeft size={14} /> view poll
           </button>
-          <button className="btn-secondary" onClick={handleLogout} title="Lock">
+          <button className="btn-secondary" onClick={handleLogout} title="Lock" style={{ padding: '0.35rem 0.65rem' }}>
             <LogOut size={14} />
           </button>
         </div>
@@ -299,57 +312,72 @@ export default function AdminView({ activePoll, onPollCreated, onForceEndPoll, o
 
       {/* Live Monitor Card (if active) */}
       {isLive && (
-        <div className="glass-card" style={{ padding: '1.5rem', borderColor: 'var(--accent-green)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+        <div className="glass-card" style={{ padding: '1.25rem', borderColor: 'var(--accent-green)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.85rem', flexWrap: 'wrap', gap: '0.5rem' }}>
             <span style={{ fontSize: '0.75rem', fontFamily: 'var(--font-mono)', color: 'var(--accent-green)' }}>
               ● live broadcasting
             </span>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
               <CountdownTimer expiresAt={activePoll.expires_at} />
               <button
                 className="btn-secondary"
                 onClick={() => onForceEndPoll(activePoll.id)}
-                style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem' }}
+                style={{ padding: '0.25rem 0.55rem', fontSize: '0.75rem' }}
               >
                 <StopCircle size={13} /> end
               </button>
             </div>
           </div>
 
-          <h3 style={{ fontSize: '1.15rem', fontWeight: 500, marginBottom: '1rem' }}>
+          <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '1rem' }}>
             {activePoll.question}
           </h3>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+          {/* Option A vs Option B Percentage Breakdown */}
+          <div className="responsive-two-col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
             <div style={{ padding: '0.85rem', background: 'var(--bg-main)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)' }}>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>A</div>
-              <div style={{ fontWeight: 500 }}>{activePoll.option_a}</div>
-              <div style={{ fontSize: '1.1rem', fontFamily: 'var(--font-mono)', marginTop: '0.3rem' }}>
-                {activePoll.option_a_votes || 0} <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>({liveTotalVotes > 0 ? Math.round(((activePoll.option_a_votes || 0) / liveTotalVotes) * 100) : 0}%)</span>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Option A</div>
+              <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>{activePoll.option_a}</div>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', marginTop: '0.35rem' }}>
+                <span style={{ fontSize: '1.25rem', fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--accent-green)' }}>
+                  {liveAPercent}%
+                </span>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                  ({activePoll.option_a_votes || 0} votes)
+                </span>
               </div>
             </div>
 
             <div style={{ padding: '0.85rem', background: 'var(--bg-main)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)' }}>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>B</div>
-              <div style={{ fontWeight: 500 }}>{activePoll.option_b}</div>
-              <div style={{ fontSize: '1.1rem', fontFamily: 'var(--font-mono)', marginTop: '0.3rem' }}>
-                {activePoll.option_b_votes || 0} <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>({liveTotalVotes > 0 ? Math.round(((activePoll.option_b_votes || 0) / liveTotalVotes) * 100) : 0}%)</span>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Option B</div>
+              <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>{activePoll.option_b}</div>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', marginTop: '0.35rem' }}>
+                <span style={{ fontSize: '1.25rem', fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--accent-green)' }}>
+                  {liveBPercent}%
+                </span>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                  ({activePoll.option_b_votes || 0} votes)
+                </span>
               </div>
             </div>
+          </div>
+
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', textAlign: 'right' }}>
+            total responses: {liveTotalVotes}
           </div>
         </div>
       )}
 
       {/* Poll Creation Card */}
-      <div className="glass-card" style={{ padding: '1.5rem' }}>
-        <h2 style={{ fontSize: '1.15rem', fontWeight: 600, marginBottom: '1.25rem' }}>
-          New Poll
+      <div className="glass-card" style={{ padding: '1.35rem' }}>
+        <h2 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '1rem' }}>
+          Create Poll
         </h2>
 
         {/* Preset Suggestions */}
-        <div style={{ marginBottom: '1.25rem' }}>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+        <div style={{ marginBottom: '1rem' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
             {PRESETS.map((p, idx) => (
               <button
                 key={idx}
@@ -380,7 +408,7 @@ export default function AdminView({ activePoll, onPollCreated, onForceEndPoll, o
           </div>
         )}
 
-        <form onSubmit={handleCreatePoll} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <form onSubmit={handleCreatePoll} style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
           <div className="input-group">
             <label className="input-label" htmlFor="poll-question">Question</label>
             <input
@@ -394,7 +422,7 @@ export default function AdminView({ activePoll, onPollCreated, onForceEndPoll, o
             />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+          <div className="responsive-two-col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
             <div className="input-group">
               <label className="input-label" htmlFor="poll-option-a">Option A</label>
               <input
@@ -463,7 +491,7 @@ export default function AdminView({ activePoll, onPollCreated, onForceEndPoll, o
             </div>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.4rem' }}>
             <button
               type="submit"
               className="btn-primary"
@@ -475,10 +503,10 @@ export default function AdminView({ activePoll, onPollCreated, onForceEndPoll, o
         </form>
       </div>
 
-      {/* Past Polls Archive */}
-      <div className="glass-card" style={{ padding: '1.5rem' }}>
+      {/* Past Polls Archive with Explicit Percentages */}
+      <div className="glass-card" style={{ padding: '1.35rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-          <h3 style={{ fontSize: '1rem', fontWeight: 600 }}>History</h3>
+          <h3 style={{ fontSize: '1rem', fontWeight: 600 }}>Poll History & Percentages</h3>
           <button className="btn-secondary" onClick={fetchHistory} style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}>
             refresh
           </button>
@@ -497,45 +525,74 @@ export default function AdminView({ activePoll, onPollCreated, onForceEndPoll, o
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-muted)' }}>
-                  <th style={{ padding: '0.5rem 0.25rem', fontFamily: 'var(--font-mono)' }}>#</th>
+                  <th style={{ padding: '0.5rem 0.25rem', fontFamily: 'var(--font-mono)', width: '35px' }}>#</th>
                   <th style={{ padding: '0.5rem' }}>Question</th>
-                  <th style={{ padding: '0.5rem' }}>A</th>
-                  <th style={{ padding: '0.5rem' }}>B</th>
-                  <th style={{ padding: '0.5rem', textAlign: 'right' }}>Actions</th>
+                  <th style={{ padding: '0.5rem' }}>Option A &amp; %</th>
+                  <th style={{ padding: '0.5rem' }}>Option B &amp; %</th>
+                  <th style={{ padding: '0.5rem', textAlign: 'right', width: '40px' }}></th>
                 </tr>
               </thead>
               <tbody>
-                {history.map((p) => (
-                  <tr key={p.id} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.03)' }}>
-                    <td style={{ padding: '0.65rem 0.25rem', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
-                      {p.id}
-                    </td>
-                    <td style={{ padding: '0.65rem', color: 'var(--text-primary)' }}>
-                      {p.question}
-                    </td>
-                    <td style={{ padding: '0.65rem', color: 'var(--text-secondary)' }}>
-                      {p.option_a}: <strong style={{ color: 'var(--text-primary)' }}>{p.option_a_votes}</strong>
-                    </td>
-                    <td style={{ padding: '0.65rem', color: 'var(--text-secondary)' }}>
-                      {p.option_b}: <strong style={{ color: 'var(--text-primary)' }}>{p.option_b_votes}</strong>
-                    </td>
-                    <td style={{ padding: '0.65rem 0.25rem', textAlign: 'right' }}>
-                      <button
-                        onClick={() => handleDeletePoll(p.id)}
-                        style={{
-                          background: 'transparent',
-                          border: 'none',
-                          color: 'var(--text-muted)',
-                          cursor: 'pointer',
-                          padding: '0.2rem'
-                        }}
-                        title="Delete"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                {history.map((p) => {
+                  const total = (p.option_a_votes || 0) + (p.option_b_votes || 0);
+                  const aPercent = total > 0 ? Math.round(((p.option_a_votes || 0) / total) * 100) : 0;
+                  const bPercent = total > 0 ? Math.round(((p.option_b_votes || 0) / total) * 100) : 0;
+
+                  return (
+                    <tr key={p.id} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)' }}>
+                      <td style={{ padding: '0.65rem 0.25rem', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
+                        {p.id}
+                      </td>
+                      <td style={{ padding: '0.65rem', color: 'var(--text-primary)', maxWidth: '240px' }}>
+                        <div style={{ fontWeight: 500 }}>{p.question}</div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+                          {total} {total === 1 ? 'vote' : 'votes'} total &bull; {p.duration_seconds}s
+                        </div>
+                      </td>
+                      <td style={{ padding: '0.65rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                          <span style={{ fontWeight: 600, color: 'var(--accent-green)', fontFamily: 'var(--font-mono)' }}>
+                            {aPercent}%
+                          </span>
+                          <span style={{ color: 'var(--text-secondary)' }}>
+                            {p.option_a}
+                          </span>
+                        </div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                          {p.option_a_votes || 0} votes
+                        </div>
+                      </td>
+                      <td style={{ padding: '0.65rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                          <span style={{ fontWeight: 600, color: 'var(--accent-green)', fontFamily: 'var(--font-mono)' }}>
+                            {bPercent}%
+                          </span>
+                          <span style={{ color: 'var(--text-secondary)' }}>
+                            {p.option_b}
+                          </span>
+                        </div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                          {p.option_b_votes || 0} votes
+                        </div>
+                      </td>
+                      <td style={{ padding: '0.65rem 0.25rem', textAlign: 'right' }}>
+                        <button
+                          onClick={() => handleDeletePoll(p.id)}
+                          style={{
+                            background: 'transparent',
+                            border: 'none',
+                            color: 'var(--text-muted)',
+                            cursor: 'pointer',
+                            padding: '0.2rem'
+                          }}
+                          title="Delete"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

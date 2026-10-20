@@ -31,15 +31,28 @@ export default function VoterView({
     }
   };
 
-  // If no live poll or poll has expired, screen is empty
+  // If no live poll or poll has expired, show clean waiting state with loading bar
   const isExpired = !activePoll || activePoll.status === 'ended' || (activePoll.remaining_seconds <= 0 && activePoll.status !== 'active');
 
   if (isExpired) {
     return (
-      <div style={{ textAlign: 'center', padding: '6rem 1rem' }}>
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', fontFamily: 'var(--font-mono)' }}>
-          no active poll right now
+      <div style={{ textAlign: 'center', padding: '4rem 1rem' }}>
+        <img 
+          src="/logo.png" 
+          alt="DVOTE" 
+          style={{ width: 48, height: 48, marginBottom: '1.25rem', opacity: 0.9 }} 
+        />
+        <h2 style={{ fontSize: '1.2rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.4rem' }}>
+          Poll is about to come
+        </h2>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', fontFamily: 'var(--font-mono)' }}>
+          waiting for the next live question...
         </p>
+
+        {/* Indeterminate minimalist loading bar */}
+        <div className="loading-bar-track">
+          <div className="loading-bar-indicator" />
+        </div>
       </div>
     );
   }
@@ -47,11 +60,11 @@ export default function VoterView({
   const totalVotes = (activePoll.option_a_votes || 0) + (activePoll.option_b_votes || 0);
 
   return (
-    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       
       {/* Poll Header: Timer and Question */}
       <div>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
           <span style={{ fontSize: '0.75rem', fontFamily: 'var(--font-mono)', color: 'var(--accent-green)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
             ● live
           </span>
@@ -62,7 +75,7 @@ export default function VoterView({
           />
         </div>
 
-        <h1 style={{ fontSize: '1.75rem', fontWeight: 600, letterSpacing: '-0.02em', lineHeight: 1.3 }}>
+        <h1 style={{ fontSize: '1.5rem', fontWeight: 600, letterSpacing: '-0.02em', lineHeight: 1.35 }}>
           {activePoll.question}
         </h1>
       </div>
@@ -83,7 +96,7 @@ export default function VoterView({
       )}
 
       {/* Voting Options */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
         <VoteOptionCard
           type="option_a"
           title={activePoll.option_a}
@@ -106,7 +119,7 @@ export default function VoterView({
       </div>
 
       {hasVoted && (
-        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', textAlign: 'center' }}>
           vote submitted. results will vanish when the timer ends.
         </div>
       )}

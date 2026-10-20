@@ -8,8 +8,14 @@ export default function Navbar({ currentView, setCurrentView, isConnected }) {
         style={{ cursor: 'pointer' }}
         onClick={() => setCurrentView('voter')}
       >
-        <span className="nav-brand-dot" />
-        <span style={{ fontWeight: 600 }}>vote</span>
+        <img 
+          src="/logo.png" 
+          alt="DVOTE logo" 
+          style={{ width: 26, height: 26, objectFit: 'contain' }} 
+        />
+        <span style={{ fontWeight: 700, letterSpacing: '0.05em', fontSize: '1.05rem' }}>
+          DVOTE
+        </span>
       </div>
 
       <div className="nav-links">
@@ -21,21 +27,16 @@ export default function Navbar({ currentView, setCurrentView, isConnected }) {
           <span>{isConnected ? 'live' : 'connecting'}</span>
         </div>
 
-        <button
-          className={`nav-btn ${currentView === 'voter' ? 'active' : ''}`}
-          onClick={() => setCurrentView('voter')}
-          id="nav-home-btn"
-        >
-          poll
-        </button>
-
-        <button
-          className={`nav-btn ${currentView === 'admin' ? 'active' : ''}`}
-          onClick={() => setCurrentView('admin')}
-          id="nav-admin-btn"
-        >
-          /admin
-        </button>
+        {/* Only show 'vote' link if currently inside admin console */}
+        {currentView === 'admin' && (
+          <button
+            className="nav-btn"
+            onClick={() => setCurrentView('voter')}
+            id="nav-home-btn"
+          >
+            ← vote
+          </button>
+        )}
       </div>
     </nav>
   );
