@@ -11,7 +11,12 @@ import {
   Zap, 
   StopCircle,
   Eye,
-  Trophy
+  EyeOff,
+  Lock,
+  Unlock,
+  LogOut,
+  Trophy,
+  ShieldCheck
 } from 'lucide-react';
 import CountdownTimer from './CountdownTimer';
 
@@ -43,6 +48,16 @@ const PRESETS = [
 ];
 
 export default function AdminView({ activePoll, onPollCreated, onForceEndPoll, onSwitchToVoter }) {
+  // Password protection state
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return sessionStorage.getItem('pulsevote_admin_auth') === 'true';
+  });
+  const [passwordInput, setPasswordInput] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [loginError, setLoginError] = useState(null);
+  const [isVerifying, setIsVerifying] = useState(false);
+
+  // Form state
   const [question, setQuestion] = useState('');
   const [optionA, setOptionA] = useState('');
   const [optionB, setOptionB] = useState('');
@@ -52,6 +67,51 @@ export default function AdminView({ activePoll, onPollCreated, onForceEndPoll, o
   const [feedback, setFeedback] = useState(null);
   const [history, setHistory] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
+
+  const getAdminPassword = () => {
+    return sessionStorage.getItem('pulsevote_admin_pw') || 'anshul';
+  };
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    if (!passwordInput.trim()) {
+      setLoginError('Please enter the admin password.');
+      return;
+    }
+
+    setIsVerifying(true);
+    setLoginError(null);
+
+    try {
+      const res = await fetch('/api/admin/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: passwordInput.trim() })
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Incorrect admin password.');
+      }
+
+      // Success
+      sessionStorage.setItem('pulsevote_admin_auth', 'true');
+      sessionStorage.setItem('pulsevote_admin_pw', passwordInput.trim());
+      setIsAuthenticated(true);
+      setPasswordInput('');
+    } catch (err) {
+      setLoginError(err.message || 'Incorrect password.');
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
+  const handleLogout = () => {
+    sessionStorage.removeItem('pulsevote_admin_auth');
+    sessionStorage.removeItem('pulsevote_admin_pw');
+    setIsAuthenticated(false);
+    setPasswordInput('');
+  };
 
   // Fetch all polls history
   const fetchHistory = async () => {
@@ -70,8 +130,10 @@ export default function AdminView({ activePoll, onPollCreated, onForceEndPoll, o
   };
 
   useEffect(() => {
-    fetchHistory();
-  }, [activePoll]);
+    if (isAuthenticated) {
+      fetchHistory();
+    }
+  }, [activePoll, isAuthenticated]);
 
   const applyPreset = (preset) => {
     setQuestion(preset.question);
@@ -104,7 +166,10 @@ export default function AdminView({ activePoll, onPollCreated, onForceEndPoll, o
     try {
       const res = await fetch('/api/polls', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-admin-password': getAdminPassword()
+        },
         body: JSON.stringify({
           question: question.trim(),
           option_a: optionA.trim(),
@@ -115,6 +180,10 @@ export default function AdminView({ activePoll, onPollCreated, onForceEndPoll, o
 
       const data = await res.json();
       if (!res.ok) {
+        if (res.status === 401) {
+          setIsAuthenticated(false);
+          sessionStorage.removeItem('pulsevote_admin_auth');
+        }
         throw new Error(data.error || 'Failed to create poll');
       }
 
@@ -140,15 +209,144 @@ export default function AdminView({ activePoll, onPollCreated, onForceEndPoll, o
   const handleDeletePoll = async (pollId) => {
     if (!confirm(`Are you sure you want to delete Poll #${pollId}?`)) return;
     try {
-      const res = await fetch(`/api/polls/${pollId}`, { method: 'DELETE' });
+      const res = await fetch(`/api/polls/${pollId}`, { 
+        method: 'DELETE',
+        headers: {
+          'x-admin-password': getAdminPassword()
+        }
+      });
       if (res.ok) {
         setHistory((prev) => prev.filter((p) => p.id !== pollId));
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Failed to delete poll');
       }
     } catch (err) {
       console.error('Failed to delete poll', err);
     }
   };
 
+  // ----------------------------------------------------
+  // Gated Password Protection Screen
+  // ----------------------------------------------------
+  if (!isAuthenticated) {
+    return (
+      <div style={{ maxWidth: 480, margin: '4rem auto', width: '100%' }}>
+        <div className="glass-card" style={{ padding: '3rem 2.25rem', textAlign: 'center' }}>
+          
+          <div 
+            style={{
+              width: 72,
+              height: 72,
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.25) 0%, rgba(236, 72, 153, 0.25) 100%)',
+              border: '1px solid rgba(99, 102, 241, 0.4)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: '1.5rem',
+              boxShadow: '0 0 30px rgba(99, 102, 241, 0.3)'
+            }}
+          >
+            <Lock size={32} color="#a5b4fc" />
+          </div>
+
+          <h2 style={{ fontSize: '1.85rem', marginBottom: '0.6rem' }}>
+            Admin Console Locked
+          </h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', marginBottom: '2rem', lineHeight: 1.5 }}>
+            Please enter the administrator password to manage, broadcast, and delete polls.
+          </p>
+
+          {loginError && (
+            <div 
+              style={{
+                padding: '0.75rem 1rem',
+                borderRadius: 'var(--radius-md)',
+                background: 'rgba(239, 68, 68, 0.15)',
+                border: '1px solid rgba(239, 68, 68, 0.4)',
+                color: '#f87171',
+                fontSize: '0.9rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                marginBottom: '1.5rem',
+                textAlign: 'left'
+              }}
+            >
+              <AlertCircle size={18} style={{ flexShrink: 0 }} />
+              <span>{loginError}</span>
+            </div>
+          )}
+
+          <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+            <div className="input-group" style={{ textAlign: 'left' }}>
+              <label className="input-label" htmlFor="admin-password-input">Password</label>
+              <div style={{ position: 'relative' }}>
+                <input
+                  id="admin-password-input"
+                  type={showPassword ? 'text' : 'password'}
+                  className="form-input"
+                  placeholder="Enter admin password..."
+                  value={passwordInput}
+                  onChange={(e) => setPasswordInput(e.target.value)}
+                  autoFocus
+                  required
+                  style={{ paddingRight: '2.75rem' }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={{
+                    position: 'absolute',
+                    right: '0.75rem',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'transparent',
+                    border: 'none',
+                    color: 'var(--text-muted)',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    padding: '0.25rem'
+                  }}
+                  title={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              className="btn-primary"
+              disabled={isVerifying}
+              id="admin-login-btn"
+              style={{ width: '100%', padding: '0.9rem', fontSize: '1rem' }}
+            >
+              <Unlock size={18} />
+              {isVerifying ? 'Verifying...' : 'Unlock Admin Console'}
+            </button>
+          </form>
+
+          <div style={{ marginTop: '2rem', paddingTop: '1.5rem', borderTop: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'center' }}>
+            <button 
+              className="btn-secondary" 
+              onClick={onSwitchToVoter}
+              style={{ fontSize: '0.85rem' }}
+            >
+              Return to Home (Voter Screen)
+            </button>
+          </div>
+
+        </div>
+      </div>
+    );
+  }
+
+  // ----------------------------------------------------
+  // Authenticated Admin Dashboard
+  // ----------------------------------------------------
   const isLive = activePoll && activePoll.status === 'active' && activePoll.remaining_seconds > 0;
   const liveTotalVotes = isLive ? (activePoll.option_a_votes || 0) + (activePoll.option_b_votes || 0) : 0;
 
@@ -162,8 +360,8 @@ export default function AdminView({ activePoll, onPollCreated, onForceEndPoll, o
             <span style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#818cf8', fontWeight: 700 }}>
               Administration Console
             </span>
-            <span style={{ background: 'rgba(99, 102, 241, 0.15)', color: '#c7d2fe', padding: '0.15rem 0.6rem', borderRadius: 999, fontSize: '0.75rem', fontWeight: 600 }}>
-              Endpoint: /admin
+            <span style={{ background: 'rgba(16, 185, 129, 0.15)', border: '1px solid rgba(16, 185, 129, 0.3)', color: '#34d399', padding: '0.15rem 0.6rem', borderRadius: 999, fontSize: '0.75rem', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+              <ShieldCheck size={13} /> Authenticated
             </span>
           </div>
           <h1 style={{ fontSize: '2.2rem' }}>Manage & Broadcast Polls</h1>
@@ -172,6 +370,14 @@ export default function AdminView({ activePoll, onPollCreated, onForceEndPoll, o
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <button className="btn-secondary" onClick={onSwitchToVoter} id="view-as-voter-btn">
             <Eye size={16} /> View as Voter
+          </button>
+          <button 
+            className="btn-secondary" 
+            onClick={handleLogout} 
+            title="Lock Admin Console"
+            style={{ color: '#fb7185', borderColor: 'rgba(244, 63, 94, 0.3)' }}
+          >
+            <LogOut size={16} /> Lock
           </button>
         </div>
       </div>
@@ -397,12 +603,10 @@ export default function AdminView({ activePoll, onPollCreated, onForceEndPoll, o
         <Database size={24} color="#818cf8" style={{ flexShrink: 0, marginTop: 2 }} />
         <div>
           <div style={{ fontWeight: 700, color: '#e0e7ff', marginBottom: '0.2rem' }}>
-            PostgreSQL Docker & Atomic Increment Engine
+            Protected Administrator Console
           </div>
           <div style={{ lineHeight: 1.6 }}>
-            Polls run on a dedicated PostgreSQL 16 container. Vote mutations are performed using PostgreSQL CTEs: 
-            <code> WITH new_vote AS (INSERT INTO votes ... ON CONFLICT DO NOTHING) UPDATE polls SET option_a_votes = option_a_votes + 1 ...</code>.
-            This guarantees zero concurrency race conditions and restricts each voter token to a single vote.
+            Poll mutation endpoints are authenticated with server-side validation. Broadcast events are relayed instantly across all connected Socket.IO voter terminals.
           </div>
         </div>
       </div>

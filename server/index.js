@@ -157,8 +157,29 @@ app.get('/api/polls/active', async (req, res) => {
   }
 });
 
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'anshul';
+
+// Middleware to protect admin routes
+function requireAdmin(req, res, next) {
+  const provided = req.headers['x-admin-password'] || req.body?.adminPassword;
+  if (!provided || provided !== ADMIN_PASSWORD) {
+    return res.status(401).json({ error: 'Unauthorized: Invalid admin password.' });
+  }
+  next();
+}
+
+// Admin password verification endpoint
+app.post('/api/admin/verify', (req, res) => {
+  const { password } = req.body;
+  if (password === ADMIN_PASSWORD) {
+    return res.json({ success: true, message: 'Admin authenticated successfully.' });
+  }
+  return res.status(401).json({ error: 'Incorrect admin password.' });
+});
+
 // Admin create new poll
-app.post('/api/polls', async (req, res) => {
+app.post('/api/polls', requireAdmin, async (req, res) => {
+
   try {
     const { question, option_a, option_b, duration_seconds } = req.body;
 
@@ -231,7 +252,7 @@ app.post('/api/polls/:id/vote', async (req, res) => {
 });
 
 // Admin force-end poll
-app.post('/api/polls/:id/end', async (req, res) => {
+app.post('/api/polls/:id/end', requireAdmin, async (req, res) => {
   try {
     const pollId = parseInt(req.params.id, 10);
     if (activePollTimer) {
@@ -264,7 +285,7 @@ app.get('/api/polls', async (req, res) => {
 });
 
 // Admin delete poll
-app.delete('/api/polls/:id', async (req, res) => {
+app.delete('/api/polls/:id', requireAdmin, async (req, res) => {
   try {
     const pollId = parseInt(req.params.id, 10);
     await deletePoll(pollId);

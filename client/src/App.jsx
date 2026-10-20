@@ -174,7 +174,13 @@ export default function App() {
   // Admin force end poll
   const handleForceEndPoll = async (pollId) => {
     try {
-      const res = await fetch(`/api/polls/${pollId}/end`, { method: 'POST' });
+      const adminPassword = sessionStorage.getItem('pulsevote_admin_pw') || 'anshul';
+      const res = await fetch(`/api/polls/${pollId}/end`, { 
+        method: 'POST',
+        headers: {
+          'x-admin-password': adminPassword
+        }
+      });
       const data = await res.json();
       if (data.poll) {
         setActivePoll(data.poll);
