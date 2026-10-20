@@ -57,8 +57,6 @@ export default function VoterView({
     );
   }
 
-  const totalVotes = (activePoll.option_a_votes || 0) + (activePoll.option_b_votes || 0);
-
   return (
     <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       
@@ -95,13 +93,11 @@ export default function VoterView({
         </div>
       )}
 
-      {/* Voting Options */}
+      {/* Voting Options (No vote numbers shown to voters) */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
         <VoteOptionCard
           type="option_a"
           title={activePoll.option_a}
-          votes={activePoll.option_a_votes || 0}
-          totalVotes={totalVotes}
           isSelected={votedChoice === 'option_a'}
           isDisabled={hasVoted || votingInProgress}
           onVote={handleVoteClick}
@@ -110,8 +106,6 @@ export default function VoterView({
         <VoteOptionCard
           type="option_b"
           title={activePoll.option_b}
-          votes={activePoll.option_b_votes || 0}
-          totalVotes={totalVotes}
           isSelected={votedChoice === 'option_b'}
           isDisabled={hasVoted || votingInProgress}
           onVote={handleVoteClick}
@@ -119,8 +113,8 @@ export default function VoterView({
       </div>
 
       {hasVoted && (
-        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', textAlign: 'center' }}>
-          vote submitted. results will vanish when the timer ends.
+        <div style={{ fontSize: '0.8rem', color: 'var(--accent-green)', fontFamily: 'var(--font-mono)', textAlign: 'center' }}>
+          ✓ vote recorded
         </div>
       )}
 
